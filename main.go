@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
 
-	"gopkg.in/yaml.v3"
-
 	configs "github.com/DeveloperPaul123/agenda/internal/configs"
 	models "github.com/DeveloperPaul123/agenda/internal/models"
 	providers "github.com/DeveloperPaul123/agenda/internal/providers"
+	spinner "github.com/briandowns/spinner"
 )
 
 // EventFormatter handles formatting events for output
@@ -56,50 +55,36 @@ func (f *EventFormatter) FormatEvent(event models.CalendarEvent) (string, error)
 	return result.String(), nil
 }
 
-// loadConfig loads configuration from file
-func loadConfig(configPath string) (configs.Config, error) {
+func initConfig() {
 	config := configs.DefaultConfig()
 
-	// Try to load from file if it exists
-	if _, err := os.Stat(configPath); err == nil {
-		data, err := os.ReadFile(configPath)
-		if err != nil {
-			return config, fmt.Errorf("failed to read config file: %w", err)
-		}
-
-		if err := yaml.Unmarshal(data, &config); err != nil {
-			return config, fmt.Errorf("failed to parse config file: %w", err)
-		}
+	if err := configs.WriteConfig(config); err != nil {
+		log.Fatalf("Failed to create config file: %v", err)
 	}
-
-	return config, nil
-}
-
-// createDefaultConfigFile creates a default config file
-func createDefaultConfigFile(configPath string) error {
-	config := configs.DefaultConfig()
-
-	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
-		return fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	data, err := yaml.Marshal(&config)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
-	}
-
-	if err := os.WriteFile(configPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write config file: %w", err)
-	}
-
-	return nil
+	fmt.Printf("Created default configuration file at: %s\n", configs.DefaultConfigPath())
+	fmt.Println("Please set your API key in the environment variable specified in the config.")
 }
 
 func main() {
+	// Manually handle subcommands since we only support 1
+	if len(os.Args) >= 2 {
+		subcommand := strings.TrimSpace(strings.ToLower(os.Args[1]))
+		// is this a flag or a subcommand?
+		if subcommand[0] != '-' {
+			switch subcommand {
+			case "init":
+				initConfig()
+				os.Exit(0)
+			default:
+				fmt.Printf("Unknown subcommand: %s\n", subcommand)
+				os.Exit(1)
+			}
+		}
+	}
+
+	// Flags that we support
 	var (
 		configPath    = flag.String("config", "", "Path to configuration file (default: ~/.config/agenda/config.yaml)")
-		initConfig    = flag.Bool("init", false, "Create a default configuration file")
 		provider      = flag.String("provider", "", "Override the provider from config")
 		timeFormat    = flag.String("time-format", "", "Override the time format from config")
 		eventTemplate = flag.String("event-template", "", "Override the event template from config")
@@ -109,25 +94,11 @@ func main() {
 
 	// Set default config path
 	if *configPath == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatalf("Failed to get home directory: %v", err)
-		}
-		*configPath = filepath.Join(homeDir, ".config", "agenda", "config.yaml")
-	}
-
-	// Initialize config if requested
-	if *initConfig {
-		if err := createDefaultConfigFile(*configPath); err != nil {
-			log.Fatalf("Failed to create config file: %v", err)
-		}
-		fmt.Printf("Created default configuration file at: %s\n", *configPath)
-		fmt.Println("Please set your API key in the environment variable specified in the config.")
-		return
+		*configPath = configs.DefaultConfigPath()
 	}
 
 	// Load configuration
-	config, err := loadConfig(*configPath)
+	config, err := configs.ReadConfig(*configPath)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
@@ -155,9 +126,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create provider: %v", err)
 	}
-
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+	s.Start()
 	// Get today's events
 	events, err := calProvider.GetTodaysEvents()
+	s.Stop()
 	if err != nil {
 		log.Fatalf("Failed to get events: %v", err)
 	}
@@ -165,6 +138,20 @@ func main() {
 	if len(events) == 0 {
 		fmt.Println("No events found for today.")
 		return
+	}
+
+	// Sort events by start time
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].StartTime.In(time.Local).Before(events[j].StartTime.In(time.Local))
+	})
+
+	// Deduplicate events by title and time
+	uniqueEvents := make(map[string]models.CalendarEvent)
+	for _, event := range events {
+		key := fmt.Sprintf("%s-%s", event.Title, event.StartTime.Format(time.RFC3339))
+		if _, exists := uniqueEvents[key]; !exists {
+			uniqueEvents[key] = event
+		}
 	}
 
 	// Create formatter
@@ -175,7 +162,7 @@ func main() {
 
 	// Format and output events
 	fmt.Printf("# Today's Meetings (%s)\n\n", time.Now().Format("January 2, 2006"))
-	for _, event := range events {
+	for _, event := range uniqueEvents {
 		formatted, err := formatter.FormatEvent(event)
 		if err != nil {
 			log.Printf("Warning: failed to format event %s: %v", event.Title, err)
