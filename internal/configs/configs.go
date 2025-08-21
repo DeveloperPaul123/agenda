@@ -30,6 +30,7 @@ type ProviderConfig struct {
 	CalendarsToIgnore []string          `yaml:"calendars_to_ignore"`
 }
 
+// Returns the default configuration for the application.
 func DefaultConfig() Config {
 	// Default configuration for now
 	config := Config{
@@ -53,10 +54,13 @@ func DefaultConfig() Config {
 	return config
 }
 
+// DefaultConfigPath returns the default path for the configuration file.
 func DefaultConfigPath() string {
 	return getSystemConfigPath()
 }
 
+// WriteConfig writes the provided configuration to the system's config directory.
+// It creates the directory if it does not exist.
 func WriteConfig(config Config) error {
 	configPath := getSystemConfigPath()
 	// Ensure directory exists
@@ -76,6 +80,10 @@ func WriteConfig(config Config) error {
 	return nil
 }
 
+// ReadConfig reads the configuration from the specified path.
+// If the file does not exist, it creates a default configuration and writes it to the path.
+// If the version of the configuration does not match the current version, it tries to merge the configuration with the default one and writes it back.
+// Returns the configuration and any error encountered.
 func ReadConfig(path string) (Config, error) {
 	var config Config
 	configFile := path
@@ -99,6 +107,7 @@ func ReadConfig(path string) (Config, error) {
 	return config, nil
 }
 
+// loadConfig loads the configuration from the specified file path.
 func loadConfig(configPath string, config *Config) error {
 	// Try to load from file if it exists
 	if _, err := os.Stat(configPath); err == nil {
