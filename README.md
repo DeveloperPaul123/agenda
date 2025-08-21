@@ -111,7 +111,6 @@ event_template: "- {{.StartTimeFormatted}} ({{.Duration}}): {{.Title}}"
 ## Command Line Options
 
 - `--config PATH` - Specify a custom configuration file path
-- `--init` - Create a default configuration file
 - `--provider NAME` - Override the provider from config
 - `--time-format FORMAT` - Override the time format from config
 - `--event-template TEMPLATE` - Override the event template from config
