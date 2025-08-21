@@ -13,8 +13,13 @@ A command-line tool that pulls calendar events from various calendar providers a
 
 ## Installation
 
+### Build from Source
+
 1. Clone or download the source code
-2. Build the application: `go build -o agenda`
+2. Install [Go](https://golang.org/dl/) if you haven't already
+  - You can also optionally install [just](https://github.com/casey/just)
+3. Build the application: `just build` or `go build`
+4. Install using `go install`
 
 ## Quick Start
 
