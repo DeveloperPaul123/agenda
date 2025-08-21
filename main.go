@@ -16,12 +16,14 @@ import (
 	spinner "github.com/briandowns/spinner"
 )
 
-// EventFormatter handles formatting events for output
+// EventFormatter handles formatting events for output to the console.
 type EventFormatter struct {
 	timeFormat    string
 	eventTemplate *template.Template
 }
 
+// NewEventFormatter creates a new EventFormatter with the specified time format
+// and event template string. It returns an error if the template parsing fails.
 func NewEventFormatter(timeFormat, eventTemplateStr string) (*EventFormatter, error) {
 	tmpl, err := template.New("event").Parse(eventTemplateStr)
 	if err != nil {
@@ -34,6 +36,8 @@ func NewEventFormatter(timeFormat, eventTemplateStr string) (*EventFormatter, er
 	}, nil
 }
 
+// FormatEvent formats a calendar event into a string using the configured template
+// and time format. It returns the formatted string or an error if formatting fails.
 func (f *EventFormatter) FormatEvent(event models.CalendarEvent) (string, error) {
 	data := struct {
 		models.CalendarEvent
@@ -55,6 +59,7 @@ func (f *EventFormatter) FormatEvent(event models.CalendarEvent) (string, error)
 	return result.String(), nil
 }
 
+// initConfig initializes the default configuration file if it does not exist.
 func initConfig() {
 	config := configs.DefaultConfig()
 
@@ -62,7 +67,7 @@ func initConfig() {
 		log.Fatalf("Failed to create config file: %v", err)
 	}
 	fmt.Printf("Created default configuration file at: %s\n", configs.DefaultConfigPath())
-	fmt.Println("Please set your API key in the environment variable specified in the config.")
+	fmt.Printf("Please set your API key in the %s environment variable.\n", config.Providers[config.Provider].EnvAPIKey)
 }
 
 func main() {
@@ -161,7 +166,6 @@ func main() {
 	}
 
 	// Format and output events
-	fmt.Printf("# Today's Meetings (%s)\n\n", time.Now().Format("January 2, 2006"))
 	for _, event := range uniqueEvents {
 		formatted, err := formatter.FormatEvent(event)
 		if err != nil {
