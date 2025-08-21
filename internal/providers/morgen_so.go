@@ -22,29 +22,36 @@ type MorgenProvider struct {
 	apiKey string
 }
 
-type MorgenCalenderRights struct {
+// morgenCalenderRights represents the rights a user has on a calendar in Morgen
+// API response. It is used to determine if the user can read items in the calendar.
+type morgenCalenderRights struct {
 	CanRead bool `json:"mayReadItems"`
 }
 
-type MorgenCalendar struct {
+// morgenCalendar represents a calendar in the Morgen API response.
+type morgenCalendar struct {
 	Name           string               `json:"name"`
 	AccountId      string               `json:"accountId"`
-	CalenderRights MorgenCalenderRights `json:"myRights"`
+	CalenderRights morgenCalenderRights `json:"myRights"`
 	Id             string               `json:"id"`
 	Color          string               `json:"color"`
 }
 
-type MorgenCalendarsResponseData struct {
-	Calendars []MorgenCalendar `json:"calendars"`
+// morgenCalendarsResponseData represents the response structure from Morgen API
+// for the list of calendars. It contains a slice of morgenCalendar objects.
+type morgenCalendarsResponseData struct {
+	Calendars []morgenCalendar `json:"calendars"`
 	// TODO: Accounts?
 }
 
-type MorgenCalendarsResponse struct {
-	Data MorgenCalendarsResponseData `json:"data"`
+// morgenCalendarsResponse represents the response structure from Morgen API
+// for the list of calendars. It contains a data field with morgenCalendarsResponseData.
+type morgenCalendarsResponse struct {
+	Data morgenCalendarsResponseData `json:"data"`
 }
 
-// MorgenEvent represents the response structure from Morgen API
-type MorgenEvent struct {
+// morgenEvent represents the response structure from Morgen API
+type morgenEvent struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
 	StartTime   string `json:"start"`
@@ -55,24 +62,33 @@ type MorgenEvent struct {
 	Location    string `json:"location"`
 }
 
-type MorgenEventsResponseData struct {
-	Events []MorgenEvent `json:"events"`
+// morgenEventsResponseData represents the response structure from Morgen API
+// for the list of events. It contains a slice of morgenEvent objects.
+type morgenEventsResponseData struct {
+	Events []morgenEvent `json:"events"`
 }
 
-type MorgenEventsResponse struct {
-	Data MorgenEventsResponseData `json:"data"`
+// morgenEventsResponse represents the response structure from Morgen API
+// for the list of events. It contains a data field with morgenEventsResponseData.
+type morgenEventsResponse struct {
+	Data morgenEventsResponseData `json:"data"`
 }
 
-const MORGEN_PROVIDER_NAME = "morgen"
+// morgenProviderName is the name of the Morgen provider.
+// It is used to identify the provider in the application.
+const morgenProviderName = "morgen"
 
+// contains checks if a string is present in a slice of strings.
 func contains(list []string, target string) bool {
 	return slices.Contains(list, target)
 }
 
+// ProviderName returns the name of the Morgen provider.
 func ProviderName() string {
-	return MORGEN_PROVIDER_NAME
+	return morgenProviderName
 }
 
+// NewMorgenProvider creates a new instance of MorgenProvider with the given configuration.
 func NewMorgenProvider(config configs.ProviderConfig) *MorgenProvider {
 	return &MorgenProvider{
 		config: config,
@@ -80,10 +96,13 @@ func NewMorgenProvider(config configs.ProviderConfig) *MorgenProvider {
 	}
 }
 
+// GetName returns the name of the provider.
 func (m *MorgenProvider) GetName() string {
-	return "morgen"
+	return ProviderName()
 }
 
+// getApiKey retrieves the API key from the environment variable specified in the provider configuration.
+// If the API key is not set, it returns an error.
 func (m *MorgenProvider) getApiKey() (string, error) {
 	if m.apiKey == "" {
 		return "", fmt.Errorf("API key not found in environment variable %s", m.config.EnvAPIKey)
@@ -92,8 +111,9 @@ func (m *MorgenProvider) getApiKey() (string, error) {
 	return m.apiKey, nil
 }
 
-// Get calenders from the Morgen API
-func (m *MorgenProvider) getCalendars() ([]MorgenCalendar, error) {
+// getCalendars retrieves the list of calendars from the Morgen API along with account info but we currently only use the calender data response.
+// Returns a list of morgenCalendar objects or an error if the request fails.
+func (m *MorgenProvider) getCalendars() ([]morgenCalendar, error) {
 	apiKey, err := m.getApiKey()
 	if err != nil {
 		return nil, err
@@ -131,7 +151,7 @@ func (m *MorgenProvider) getCalendars() ([]MorgenCalendar, error) {
 	}
 
 	// Parse response
-	var responseData MorgenCalendarsResponse
+	var responseData morgenCalendarsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
@@ -139,6 +159,7 @@ func (m *MorgenProvider) getCalendars() ([]MorgenCalendar, error) {
 	return responseData.Data.Calendars, nil
 }
 
+// GetTodaysEvents retrieves today's events from the Morgen API.
 func (m *MorgenProvider) GetTodaysEvents() ([]models.CalendarEvent, error) {
 	apiKey, err := m.getApiKey()
 	if err != nil {
@@ -168,8 +189,8 @@ func (m *MorgenProvider) GetTodaysEvents() ([]models.CalendarEvent, error) {
 	url := fmt.Sprintf("%s/events/list",
 		m.config.BaseURL)
 
-	// TODO: Loop through key values and create requests for each one and run in parallel
-	var morgenEvents []MorgenEvent
+	// Loop through key values and create requests for each one and run in parallel
+	var morgenEvents []morgenEvent
 	for accountId, calendarIds := range accountCalendarMap {
 		// Create request
 		req, err := http.NewRequest("GET", url, nil)
@@ -206,7 +227,7 @@ func (m *MorgenProvider) GetTodaysEvents() ([]models.CalendarEvent, error) {
 		}
 
 		// Parse response
-		var response MorgenEventsResponse
+		var response morgenEventsResponse
 		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 			return nil, fmt.Errorf("failed to decode response: %w", err)
 		}
