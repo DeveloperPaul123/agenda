@@ -2,6 +2,14 @@
 
 A command-line tool that pulls calendar events from various calendar providers and formats them for easy copy-pasting into markdown documents.
 
+## Why?
+
+I currently use [Obsidian](https://obsidian.md) to take notes. Obsidian uses markdown files, and part of the notes I take include a section for my meetings each day. In a [blog post](https://jnsgr.uk/2024/07/how-i-computer-in-2024/) by Jon Seager, he mentions:
+
+> The agenda and the links are automatically generated using a small Go application I wrote - this application scrapes my Google Calendar, and according to some rules and the knowledge it has of my vault, generates the Markdown for the agenda and copies it to the clipboard. Each day, I sit down and type agenda at the command line, then paste into Obsidian.
+
+I really liked this idea, so I decided to create my own version of this tool. It is written in Go and can be extended to support multiple calendar providers.
+
 ## Features
 
 - Support for multiple calendar providers (currently Morgen.so, extensible for others)
@@ -17,7 +25,9 @@ A command-line tool that pulls calendar events from various calendar providers a
 
 1. Clone or download the source code
 2. Install [Go](https://golang.org/dl/) if you haven't already
-  - You can also optionally install [just](https://github.com/casey/just)
+
+- You can also optionally install [just](https://github.com/casey/just)
+
 3. Build the application: `just build` or `go build`
 4. Install using `go install`
 
@@ -73,11 +83,11 @@ providers:
 
 #### Event Template Fields
 
-| Field | Description |
-| ----- | ----------- |
+| Field                     | Description                       |
+| ------------------------- | --------------------------------- |
 | `{{.StartTimeFormatted}}` | Formatted start time of the event |
-| `{{.EndTimeFormatted}}`   | Formatted end time of the event |
-| `{{.Title}}`              | Title of the event |
+| `{{.EndTimeFormatted}}`   | Formatted end time of the event   |
+| `{{.Title}}`              | Title of the event                |
 
 ### Provider Configuration Options
 
@@ -115,11 +125,14 @@ event_template: "- {{.StartTimeFormatted}} ({{.Duration}}): {{.Title}}"
 
 ## Command Line Options
 
-- `--config PATH` - Specify a custom configuration file path
-- `--provider NAME` - Override the provider from config
-- `--time-format FORMAT` - Override the time format from config
-- `--event-template TEMPLATE` - Override the event template from config
-- `--verbose` - Enable verbose logging
+| Option                      | Description                                                    |
+| --------------------------- | -------------------------------------------------------------- |
+| `-config PATH`             | Specify a custom configuration file path                       |
+| `-provider NAME`           | Override the provider from config                              |
+| `-time-format FORMAT`      | Override the time format from config                           |
+| `-event-template TEMPLATE` | Override the event template from config                        |
+| `-verbose`                 | Enable verbose logging                                         |
+| `-date DATE`                | Specify a date to fetch events for. Use the format YYYY-MM-DD. |
 
 ## Environment Variables
 
