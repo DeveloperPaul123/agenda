@@ -160,7 +160,9 @@ func (m *MorgenProvider) getCalendars() ([]morgenCalendar, error) {
 }
 
 // GetTodaysEvents retrieves today's events from the Morgen API.
-func (m *MorgenProvider) GetTodaysEvents() ([]models.CalendarEvent, error) {
+// It uses the provided date to determine the start of the day that it will use to pull events for.
+// Returns a list of models.CalendarEvent or an error if the request fails.
+func (m *MorgenProvider) GetTodaysEvents(useDate time.Time) ([]models.CalendarEvent, error) {
 	apiKey, err := m.getApiKey()
 	if err != nil {
 		return nil, err
@@ -181,8 +183,7 @@ func (m *MorgenProvider) GetTodaysEvents() ([]models.CalendarEvent, error) {
 	}
 
 	// Get today's date range
-	now := time.Now()
-	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	startOfDay := time.Date(useDate.Year(), useDate.Month(), useDate.Day(), 0, 0, 0, 0, useDate.Location())
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	// Build URL with date range

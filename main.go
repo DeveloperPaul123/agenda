@@ -94,6 +94,7 @@ func main() {
 		timeFormat    = flag.String("time-format", "", "Override the time format from config")
 		eventTemplate = flag.String("event-template", "", "Override the event template from config")
 		verbose       = flag.Bool("verbose", false, "Enable verbose logging")
+		date          = flag.String("date", "", "Date to get events for (format: YYYY-MM-DD, default is today)")
 	)
 	flag.Parse()
 
@@ -119,6 +120,17 @@ func main() {
 		config.EventTemplate = *eventTemplate
 	}
 
+	useDate := time.Now()
+	if *date != "" {
+		// Parse the date if provided
+		parsedDate, err := time.Parse("2006-01-02", *date)
+		if err != nil {
+			log.Fatalf("Invalid date format: %v. Use YYYY-MM-DD.", err)
+		}
+		// Set the date in the config (if needed, depending on provider implementation)
+		useDate = parsedDate
+	}
+
 	if *verbose {
 		log.Printf("Using provider: %s", config.Provider)
 		log.Printf("Time format: %s", config.TimeFormat)
@@ -133,8 +145,10 @@ func main() {
 	}
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Start()
+
 	// Get today's events
-	events, err := calProvider.GetTodaysEvents()
+	events, err := calProvider.GetTodaysEvents(useDate)
+
 	s.Stop()
 	if err != nil {
 		log.Fatalf("Failed to get events: %v", err)
@@ -157,6 +171,11 @@ func main() {
 		if _, exists := uniqueEvents[key]; !exists {
 			uniqueEvents[key] = event
 		}
+	}
+
+	if len(uniqueEvents) == 0 {
+		fmt.Println("No events today")
+		return
 	}
 
 	// Create formatter
