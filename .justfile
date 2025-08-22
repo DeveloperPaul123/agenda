@@ -1,10 +1,14 @@
+# Set variables using shell commands
+VERSION := `git describe --tags --abbrev=0 2>/dev/null || echo "dev"`
+COMMIT := `git rev-parse --short HEAD 2>/dev/null || echo "none"`
+
 default:
     @just -l
 
 [group('dev')]
 [doc('Build the project')]
 build:
-    go build
+    go build -ldflags "-X main.version={{VERSION}} -X main.commit={{COMMIT}}"
 
 
 [group('dev')]
