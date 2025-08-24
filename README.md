@@ -115,14 +115,14 @@ event_template: "- {{.StartTimeFormatted}} ({{.Duration}}): {{.Title}}"
 
 ## Command Line Options
 
-| Option                      | Description                                                    |
-| --------------------------- | -------------------------------------------------------------- |
+| Option                     | Description                                                    |
+| -------------------------- | -------------------------------------------------------------- |
 | `-config PATH`             | Specify a custom configuration file path                       |
 | `-provider NAME`           | Override the provider from config                              |
 | `-time-format FORMAT`      | Override the time format from config                           |
 | `-event-template TEMPLATE` | Override the event template from config                        |
 | `-verbose`                 | Enable verbose logging                                         |
-| `-date DATE`                | Specify a date to fetch events for. Use the format YYYY-MM-DD. |
+| `-date DATE`               | Specify a date to fetch events for. Use the format YYYY-MM-DD. |
 
 ## Environment Variables
 
