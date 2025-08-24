@@ -20,3 +20,8 @@ fmt:
 [doc('Lint the code')]
 lint:
     golangci-lint run
+
+[group('dev')]
+[doc('Run tests')]
+test:
+    go test ./...
