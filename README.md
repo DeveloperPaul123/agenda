@@ -88,6 +88,21 @@ providers:
 | `{{.StartTimeFormatted}}` | Formatted start time of the event |
 | `{{.EndTimeFormatted}}`   | Formatted end time of the event   |
 | `{{.Title}}`              | Title of the event                |
+| `{{.Duration}}`           | Duration of the event             |
+| `{{.Description}}`        | Description of the event          |
+
+##### Example Templates
+
+```yaml
+# Simple format
+event_template: "- {{.StartTimeFormatted}}: {{.Title}}"
+
+# Detailed format with location
+event_template: "- {{.StartTimeFormatted}}-{{.EndTimeFormatted}}: **{{.Title}}**"
+
+# With duration
+event_template: "- {{.StartTimeFormatted}} ({{.Duration}}): {{.Title}}"
+```
 
 ### Provider Configuration Options
 
@@ -97,31 +112,6 @@ providers:
 | `headers`             | map[string]string | HTTP headers to include in requests (e.g., for authentication with API keys) |
 | `env_api_key`         | string            | Environment variable name for the API key                                    |
 | `calendars_to_ignore` | list              | List of calendar names to ignore when fetching events                        |
-
-### Template Variables
-
-The following variables are available in the event template:
-
-- `{{.Title}}` - Event title
-- `{{.StartTimeFormatted}}` - Start time formatted with your time_format
-- `{{.EndTimeFormatted}}` - End time formatted with your time_format
-- `{{.Duration}}` - Duration of the event
-- `{{.Description}}` - Event description
-- `{{.Location}}` - Event location
-- `{{.ID}}` - Event ID
-
-### Example Templates
-
-```yaml
-# Simple format
-event_template: "- {{.StartTimeFormatted}}: {{.Title}}"
-
-# Detailed format with location
-event_template: "- {{.StartTimeFormatted}}-{{.EndTimeFormatted}}: **{{.Title}}**{{if .Location}} ({{.Location}}){{end}}"
-
-# With duration
-event_template: "- {{.StartTimeFormatted}} ({{.Duration}}): {{.Title}}"
-```
 
 ## Command Line Options
 
