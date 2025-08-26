@@ -10,6 +10,8 @@ default:
 build:
     go build -ldflags "-X main.version={{VERSION}} -X main.commit={{COMMIT}}"
 
+install:
+    go install -ldflags "-X main.version={{VERSION}} -X main.commit={{COMMIT}}" .
 
 [group('dev')]
 [doc('Format the code')]
