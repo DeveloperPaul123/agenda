@@ -134,10 +134,6 @@ func runAgenda(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	sort.Slice(events, func(i, j int) bool {
-		return events[i].StartTime.In(time.Local).Before(events[j].StartTime.In(time.Local))
-	})
-
 	uniqueEvents := make(map[string]models.CalendarEvent)
 	for _, event := range events {
 		key := fmt.Sprintf("%s-%s", event.Title, event.StartTime.Format(time.RFC3339))
@@ -151,12 +147,22 @@ func runAgenda(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Convert uniqueEvents map back to a list
+	sortedEvents := make([]models.CalendarEvent, 0, len(uniqueEvents))
+	for _, event := range uniqueEvents {
+		sortedEvents = append(sortedEvents, event)
+	}
+
+	sort.Slice(sortedEvents, func(i, j int) bool {
+		return events[i].StartTime.In(time.Local).Before(events[j].StartTime.In(time.Local))
+	})
+
 	formatter, err := NewEventFormatter(config.TimeFormat, config.EventTemplate)
 	if err != nil {
 		log.Fatalf("Failed to create formatter: %v", err)
 	}
 
-	for _, event := range uniqueEvents {
+	for _, event := range sortedEvents {
 		formatted, err := formatter.FormatEvent(event)
 		if err != nil {
 			log.Printf("Warning: failed to format event %s: %v", event.Title, err)
