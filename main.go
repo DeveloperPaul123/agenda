@@ -154,7 +154,7 @@ func runAgenda(cmd *cobra.Command, args []string) {
 	}
 
 	sort.Slice(sortedEvents, func(i, j int) bool {
-		return events[i].StartTime.In(time.Local).Before(events[j].StartTime.In(time.Local))
+		return sortedEvents[i].StartTime.Local().Before(sortedEvents[j].StartTime.Local())
 	})
 
 	formatter, err := NewEventFormatter(config.TimeFormat, config.EventTemplate)
