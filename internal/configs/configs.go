@@ -126,7 +126,7 @@ func loadConfig(configPath string, config *Config) error {
 
 func getSystemConfigPath() string {
 	// Factor out the constant
-	return getConfigPath(configdir.LocalCache(CONFIG_FOLDER))
+	return getConfigPath(configdir.LocalConfig(CONFIG_FOLDER))
 }
 
 func getConfigPath(configDir string) string {
